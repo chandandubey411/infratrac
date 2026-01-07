@@ -15,10 +15,18 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
-function LocationPicker({ setLocation }) {
+function LocationPicker({ setLocation, setAddress }) {
   useMapEvents({
-    click(e) {
-      setLocation({ latitude: e.latlng.lat, longitude: e.latlng.lng });
+    async click(e) {
+      const { lat, lng } = e.latlng;
+
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+      );
+      const data = await res.json();
+
+      setLocation({ latitude: lat, longitude: lng });
+      setAddress(data.display_name || "");
     },
   });
   return null;
@@ -32,8 +40,9 @@ export default function ReportIssue() {
     description: "",
     category: categories[0],
     image: null,
-    latitude: 28.6448,
-    longitude: 77.216721,
+    latitude: "",
+    longitude: "",
+    address: "",
   });
 
   const [aiSuggestion, setAiSuggestion] = useState(null);
@@ -44,26 +53,45 @@ export default function ReportIssue() {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
-  // 🧠 TEXT AI AUTO ANALYSIS
+  // 🛰️ Live GPS Location
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+      );
+      const data = await res.json();
+
+      setForm(prev => ({
+        ...prev,
+        latitude: lat,
+        longitude: lng,
+        address: data.display_name || "",
+      }));
+    });
+  }, []);
+
+  // 🧹 Preview cleanup
+  useEffect(() => () => imagePreview && URL.revokeObjectURL(imagePreview), [imagePreview]);
+
+  // 🧠 AI Text Analysis
   useEffect(() => {
     if (form.title.length < 5 && form.description.length < 10) return;
-
     const timer = setTimeout(() => analyzeText(), 700);
     return () => clearTimeout(timer);
   }, [form.title, form.description]);
 
   const analyzeText = async () => {
+    if (aiLoading) return;
     try {
       setAiLoading(true);
       const res = await fetch("http://localhost:8080/api/ai/analyze", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ title: form.title, description: form.description })
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ title: form.title, description: form.description }),
       });
-
       const data = await res.json();
       setAiSuggestion(data);
       setForm(p => ({ ...p, category: data.category || p.category }));
@@ -72,68 +100,29 @@ export default function ReportIssue() {
     }
   };
 
-  // 🧠 IMAGE AI
-  const analyzeImage = async (file) => {
+  const handleImageChange = async e => {
+    const file = e.target.files[0];
+    setForm(p => ({ ...p, image: file }));
+    setImagePreview(URL.createObjectURL(file));
+
+    const fd = new FormData();
+    fd.append("image", file);
+
     try {
       setAiLoading(true);
-
-      const fd = new FormData();
-      fd.append("image", file);
-
-      const res = await fetch("http://localhost:8080/api/ai/analyze", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: fd
-      });
-
-      const result = await res.json();
-
-      setAiSuggestion(result);
+      const res = await fetch("http://localhost:8080/api/ai/image", { method: "POST", body: fd });
+      const data = await res.json();
       setForm(p => ({
         ...p,
-        title: result.title || p.title,
-        description: result.description || p.description,
-        category: result.category || p.category
+        title: data.title || p.title,
+        description: data.description || p.description,
+        category: data.category || p.category,
       }));
+      setAiSuggestion(data);
     } finally {
       setAiLoading(false);
     }
   };
-
-  const handleImageChange = async (e) => {
-  const file = e.target.files[0];
-  setForm(prev => ({ ...prev, image: file }));
-  setImagePreview(URL.createObjectURL(file));
-
-  const formData = new FormData();
-  formData.append("image", file);
-
-  try {
-    setAiLoading(true);
-
-    const res = await fetch("http://localhost:8080/api/ai/image", {
-      method: "POST",
-      body: formData
-    });
-
-    const data = await res.json();
-
-    setForm(prev => ({
-      ...prev,
-      title: data.title || "",
-      description: data.description || "",
-      category: data.category || prev.category
-    }));
-
-    setAiSuggestion(data);
-
-  } catch (err) {
-    console.error("Image AI failed:", err);
-  } finally {
-    setAiLoading(false);
-  }
-};
-
 
   const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -147,7 +136,7 @@ export default function ReportIssue() {
     await fetch("https://cgc-hacathon-backend.onrender.com/api/issues", {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
-      body: fd
+      body: fd,
     });
 
     handleSuccess("Issue reported successfully!");
@@ -155,39 +144,74 @@ export default function ReportIssue() {
   };
 
   return (
-    <div className="min-h-screen p-8">
-      <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-4">
+    <div className="min-h-screen bg-gray-100 py-10">
+      <div className="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
 
-        <input name="title" value={form.title} onChange={handleChange} className="w-full p-2 border" placeholder="Title" />
+        <h1 className="text-3xl font-bold text-center text-blue-700">🚨 Report Civic Issue</h1>
+        <p className="text-center text-gray-500 mb-6">Live AI + GPS enabled reporting system</p>
 
-        <textarea name="description" value={form.description} onChange={handleChange} className="w-full p-2 border" placeholder="Description" />
+       <form onSubmit={handleSubmit} className="space-y-6">
 
-        {aiLoading && <p className="text-blue-600">🧠 AI analyzing...</p>}
+  <div>
+    <p className="section-title">Issue Title</p>
+    <input name="title" value={form.title} onChange={handleChange}
+      className="input" placeholder="Eg: Garbage near main road" />
+  </div>
 
-        {aiSuggestion && (
-          <div className="p-3 bg-blue-100 rounded">
-            <b>AI Category:</b> {aiSuggestion.category}<br/>
-            <b>Priority:</b> {aiSuggestion.priority}<br/>
-            <b>Suggested Action:</b> {aiSuggestion.suggestedAction}
-          </div>
-        )}
+  <div>
+    <p className="section-title">Describe Issue</p>
+    <textarea name="description" value={form.description} onChange={handleChange}
+      rows="3" className="input" placeholder="Explain problem clearly..." />
+  </div>
 
-        <input type="file" onChange={handleImageChange} />
-        {imagePreview && <img src={imagePreview} className="h-32 mt-2 rounded" />}
+  <div className="grid grid-cols-2 gap-4">
+    <div>
+      <p className="section-title">Latitude</p>
+      <input value={form.latitude} readOnly className="input bg-gray-100" />
+    </div>
+    <div>
+      <p className="section-title">Longitude</p>
+      <input value={form.longitude} readOnly className="input bg-gray-100" />
+    </div>
+  </div>
 
-        <button disabled={submitting} className="bg-blue-600 text-white px-6 py-2 rounded">
-          {submitting ? "Submitting..." : "Submit"}
-        </button>
+  <div>
+    <p className="section-title">Detected Location</p>
+    <input value={form.address} readOnly className="input bg-gray-100" />
+  </div>
 
-        <div className="h-72 border">
-          <MapContainer center={[form.latitude, form.longitude]} zoom={13} style={{ height: "100%" }}>
-            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-            <LocationPicker setLocation={loc => setForm({ ...form, ...loc })} />
-            <Marker position={[form.latitude, form.longitude]} />
-          </MapContainer>
-        </div>
+  <div>
+    <p className="section-title">Upload Photo</p>
+    <input type="file" onChange={handleImageChange}
+      className="block w-full text-sm file:bg-blue-600 file:text-white file:px-4 file:py-2 file:rounded file:border-0 file:cursor-pointer" />
+  </div>
 
-      </form>
+  {imagePreview && (
+    <img src={imagePreview} className="h-40 w-full object-cover rounded-lg border" />
+  )}
+
+  <div>
+    <p className="section-title">Confirm Location on Map</p>
+    <div className="h-72 rounded-lg overflow-hidden border">
+      <MapContainer center={[form.latitude, form.longitude]} zoom={13} style={{ height: "100%" }}>
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        <LocationPicker
+          setLocation={loc => setForm(p => ({ ...p, ...loc }))}
+          setAddress={addr => setForm(p => ({ ...p, address: addr }))}
+        />
+        {form.latitude && <Marker position={[form.latitude, form.longitude]} />}
+      </MapContainer>
+    </div>
+  </div>
+
+  <button disabled={submitting}
+    className="w-full bg-blue-600 hover:bg-blue-700 transition text-white py-3 rounded-full font-semibold text-lg">
+    {submitting ? "Submitting..." : "Submit Issue"}
+  </button>
+
+</form>
+
+      </div>
       <ToastContainer />
     </div>
   );

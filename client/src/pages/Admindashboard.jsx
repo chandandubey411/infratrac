@@ -13,6 +13,32 @@ const SORT_OPTIONS = [
   { label: "Oldest first", value: "oldest" },
 ];
 
+const StatCard = ({ label, value, color = "indigo" }) => (
+  <div className={`p-6 rounded-2xl shadow-lg bg-${color}-50 text-center`}>
+    <p className="text-3xl font-extrabold">{value}</p>
+    <p className="mt-1 text-slate-700">{label}</p>
+  </div>
+);
+
+const TrendCard = ({ title, value, color = "indigo" }) => (
+  <div className="bg-white p-5 rounded-2xl shadow hover:shadow-xl transition">
+    <p className="text-slate-600">{title}</p>
+    <p className={`text-xl font-bold text-${color}-600 mt-1`}>{value}</p>
+  </div>
+);
+
+const FilterSelect = ({ options, value, onChange, placeholder }) => (
+  <select
+    className="border px-5 py-3 rounded-xl focus:ring-2 focus:ring-indigo-400 transition"
+    value={value}
+    onChange={e => onChange(e.target.value)}
+  >
+    <option value="">{placeholder}</option>
+    {options.map(o => <option key={o}>{o}</option>)}
+  </select>
+);
+
+
 const STAFF_OPTIONS = [
   "Public Works Department (PWD)",
   "Municipal Sanitation Team",
@@ -217,180 +243,327 @@ const AdminDashboard = () => {
 
   if (loading) return <p className="text-center mt-20">Loading dashboard...</p>;
 
-  return (
-    <div className="max-w-7xl mx-auto p-6 mt-10">
+ return (
+  <div className="max-w-7xl mx-auto mt-6 sm:mt-10 p-4 sm:p-8 bg-gradient-to-br from-slate-100 via-white to-slate-200 rounded-2xl sm:rounded-3xl shadow-inner">
 
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <p className="text-gray-600">{name} ({email})</p>
-        </div>
-        <button onClick={handleLogout} className="bg-red-600 text-white px-4 py-2 rounded">
-          Logout
-        </button>
-      </div>
-
-      {/* 🧠 AI Critical Panel */}
-      <div className="mb-6 p-4 bg-red-50 border rounded-xl">
-        <h2 className="text-xl font-bold text-red-700 mb-3">🚨 AI Critical Issues</h2>
-        <div className="grid md:grid-cols-3 gap-4">
-          {aiIssues.map(issue => (
-            <div key={issue._id} className="p-3 bg-white rounded shadow">
-              <p className="font-semibold">{issue.title}</p>
-              <p className="text-sm">Category: {issue.category}</p>
-              <p className="text-sm font-bold text-red-600">Priority: {issue.priority}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* 📊 Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="p-4 bg-white rounded shadow text-center">
-          <p className="text-2xl font-bold">{allIssues.length}</p>
-          <p>Total Issues</p>
-        </div>
-        <div className="p-4 bg-yellow-50 rounded shadow text-center">
-          <p className="text-2xl font-bold">{allIssues.filter(i => i.status !== "Resolved").length}</p>
-          <p>Open Issues</p>
-        </div>
-        <div className="p-4 bg-green-50 rounded shadow text-center">
-          <p className="text-2xl font-bold">{allIssues.filter(i => i.status === "Resolved").length}</p>
-          <p>Resolved</p>
-        </div>
-        <div className="p-4 bg-red-50 rounded shadow text-center">
-          <p className="text-2xl font-bold">{aiIssues.filter(i => i.priority === "High").length}</p>
-          <p>High Priority</p>
-        </div>
-      </div>
-
-
-      {aiTrends && (
-  <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-6 rounded-xl shadow-md mb-6">
-    <h3 className="text-xl font-bold text-indigo-700 mb-3">🧠 AI Trend Insights</h3>
-
-    <div className="grid md:grid-cols-3 gap-4">
-      <div className="bg-white p-4 rounded-lg shadow">
-        <p className="text-gray-600">Most Reported Category</p>
-        <p className="text-lg font-semibold text-indigo-700">
-          {aiTrends.mostReportedCategory}
+    {/* Header */}
+    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 sm:mb-10 gap-4 sm:gap-6">
+      <div>
+        <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
+          Admin Dashboard
+        </h1>
+        <p className="text-sm sm:text-base text-slate-600 mt-1 break-all">
+          {name} ({email})
         </p>
       </div>
 
-      <div className="bg-white p-4 rounded-lg shadow">
-        <p className="text-gray-600">Open Issues</p>
-        <p className="text-lg font-semibold text-red-600">
-          {aiTrends.openIssues}
-        </p>
-      </div>
+      <button
+        onClick={handleLogout}
+        className="w-full md:w-auto bg-red-600 hover:bg-red-700 transition text-white px-5 sm:px-6 py-2 rounded-xl shadow-md"
+      >
+        Logout
+      </button>
+    </div>
 
-      <div className="bg-white p-4 rounded-lg shadow">
-        <p className="text-gray-600">Resolved Issues</p>
-        <p className="text-lg font-semibold text-green-600">
-          {aiTrends.resolvedIssues}
-        </p>
+    {/* AI Critical */}
+    <div className="mb-8 sm:mb-10 p-5 sm:p-7 bg-gradient-to-r from-red-100 to-pink-100 border border-red-200 rounded-2xl sm:rounded-3xl shadow-lg">
+      <h2 className="text-xl sm:text-2xl font-bold text-red-700 mb-4 sm:mb-5">
+        🚨 AI Critical Issues
+      </h2>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        {aiIssues.map(issue => (
+          <div
+            key={issue._id}
+            className="p-4 sm:p-5 bg-white rounded-xl sm:rounded-2xl shadow hover:shadow-xl transition"
+          >
+            <p className="font-semibold text-base sm:text-lg">
+              {issue.title}
+            </p>
+            <p className="text-xs sm:text-sm text-slate-600">
+              Category: {issue.category}
+            </p>
+            <p className="text-xs sm:text-sm font-bold text-red-600 mt-1">
+              Priority: {issue.priority}
+            </p>
+          </div>
+        ))}
       </div>
     </div>
-  </div>
-)}
 
+    {/* Stats */}
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8 mb-8 sm:mb-12">
+      <StatCard label="Total Issues" value={allIssues.length} />
+      <StatCard label="Open Issues" value={allIssues.filter(i => i.status !== "Resolved").length} color="yellow" />
+      <StatCard label="Resolved" value={allIssues.filter(i => i.status === "Resolved").length} color="green" />
+      <StatCard label="High Priority" value={aiIssues.filter(i => i.priority === "High").length} color="red" />
+    </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3 mb-6 bg-white p-4 rounded-xl shadow-sm">
-        <select name="status" value={filters.status} onChange={e => setFilters({ ...filters, status: e.target.value })} className="border px-3 py-2 rounded">
-          <option value="">All statuses</option>
-          {STATUS_OPTIONS.map(s => <option key={s}>{s}</option>)}
-        </select>
+    {/* AI Trends */}
+    {aiTrends && (
+      <div className="bg-gradient-to-r from-indigo-200 via-purple-100 to-pink-100 p-5 sm:p-8 rounded-2xl sm:rounded-3xl shadow-xl mb-8 sm:mb-12">
+        <h3 className="text-xl sm:text-2xl font-bold text-indigo-800 mb-4 sm:mb-6">
+          🧠 AI Trend Insights
+        </h3>
 
-        <select name="category" value={filters.category} onChange={e => setFilters({ ...filters, category: e.target.value })} className="border px-3 py-2 rounded">
-          <option value="">All categories</option>
-          {CATEGORIES.map(c => <option key={c}>{c}</option>)}
-        </select>
-
-        <input type="text" placeholder="Search by title..." value={filters.search}
-          onChange={e => setFilters({ ...filters, search: e.target.value })} className="border px-3 py-2 rounded flex-1" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <TrendCard title="Most Reported Category" value={aiTrends.mostReportedCategory} />
+          <TrendCard title="Open Issues" value={aiTrends.openIssues} color="red" />
+          <TrendCard title="Resolved Issues" value={aiTrends.resolvedIssues} color="green" />
+        </div>
       </div>
-          {/* 🗺️ City Heatmap */}
-      {/* <div className="mb-8">
-        <h2 className="text-xl font-bold mb-3">City Issue Density</h2>
-        <CityHeatmap points={heatmapPoints} />
-      </div> */}
+    )}
 
+    {/* Filters */}
+    <div className="flex flex-col sm:flex-row gap-3 sm:gap-5 mb-8 sm:mb-12 bg-white p-4 sm:p-7 rounded-2xl sm:rounded-3xl shadow">
+      <FilterSelect
+        options={STATUS_OPTIONS}
+        value={filters.status}
+        onChange={v => setFilters({ ...filters, status: v })}
+        placeholder="All Status"
+      />
+      <FilterSelect
+        options={CATEGORIES}
+        value={filters.category}
+        onChange={v => setFilters({ ...filters, category: v })}
+        placeholder="All Categories"
+      />
+      <input
+        className="w-full border px-4 sm:px-5 py-3 rounded-xl focus:ring-2 focus:ring-indigo-400 transition"
+        placeholder="Search by title..."
+        value={filters.search}
+        onChange={e => setFilters({ ...filters, search: e.target.value })}
+      />
+    </div>
 
+    {/* Map */}
+    <div className="mb-10 sm:mb-14 bg-white p-4 sm:p-7 rounded-2xl sm:rounded-3xl shadow-xl">
       <CityIssueMap issues={issues} />
+    </div>
 
-
-      {/* Table */}
-      <div className="bg-white rounded shadow overflow-x-auto">
-        <table className="min-w-full">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="p-2">Title</th>
-              <th className="p-2">Category</th>
-              <th className="p-2">Status</th>
-              <th className="p-2">Resolution</th>
-              <th className="p-2">Assigned</th>
-              <th className="p-2">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {issues.map(issue => (
-              <tr key={issue._id} className="border-t">
-                <td className="p-2">{issue.title}</td>
-                <td className="p-2">{issue.category}</td>
-
-                <td className="p-2">
-                  {editing === issue._id ? (
-                    <select value={status} onChange={e => setStatus(e.target.value)} className="border rounded">
-                      {STATUS_OPTIONS.map(s => <option key={s}>{s}</option>)}
-                    </select>
-                  ) : (
-                    <span className={
-                      issue.status === "Resolved" ? "text-green-600 font-semibold" :
-                      issue.status === "In Progress" ? "text-yellow-600 font-semibold" :
-                      "text-red-600 font-semibold"
-                    }>
-                      {issue.status}
-                    </span>
-                  )}
-                </td>
-
-                <td className="p-2">
-                  {editing === issue._id ? (
-                    <textarea value={resolutionNotes} onChange={e => setResolutionNotes(e.target.value)} className="border rounded w-full" />
-                  ) : issue.resolutionNotes || "-"}
-                </td>
-
-                <td className="p-2">
-                  {editing === issue._id ? (
-                    <select value={assignedTo} onChange={e => setAssignedTo(e.target.value)} className="border rounded">
-                      <option value="">Select staff...</option>
-                      {STAFF_OPTIONS.map(s => <option key={s}>{s}</option>)}
-                    </select>
-                  ) : issue.assignedTo || "Unassigned"}
-                </td>
-
-                <td className="p-2 space-x-2">
-                  {editing === issue._id ? (
-                    <>
-                      <button onClick={() => saveChanges(issue._id)} className="bg-green-600 text-white px-2 py-1 rounded">Save</button>
-                      <button onClick={cancelEdit} className="bg-gray-500 text-white px-2 py-1 rounded">Cancel</button>
-                    </>
-                  ) : (
-                    <>
-                      <button onClick={() => startEdit(issue)} className="bg-blue-600 text-white px-2 py-1 rounded">Edit</button>
-                      <button onClick={() => deleteIssue(issue._id)} className="bg-red-600 text-white px-2 py-1 rounded">Delete</button>
-                    </>
-                  )}
-                </td>
-              </tr>
+    {/* Table */}
+    <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl overflow-x-auto">
+      <table className="min-w-full text-sm sm:text-base">
+        <thead className="bg-slate-200 text-slate-800">
+          <tr>
+            {["Title","Category","Status","Resolution","Assigned","Actions"].map(h => (
+              <th key={h} className="p-3 sm:p-4 text-left whitespace-nowrap">
+                {h}
+              </th>
             ))}
-          </tbody>
-        </table>
+          </tr>
+        </thead>
+
+        <tbody>
+  {issues.map(issue => (
+    <tr key={issue._id} className="border-t hover:bg-slate-50 transition">
+
+      <td className="p-4">{issue.title}</td>
+
+      <td className="p-4">{issue.category}</td>
+
+      <td className="p-4">
+        {editing === issue._id ? (
+          <select
+            value={status}
+            onChange={e => setStatus(e.target.value)}
+            className="border px-3 py-1 rounded-lg"
+          >
+            {STATUS_OPTIONS.map(s => (
+              <option key={s}>{s}</option>
+            ))}
+          </select>
+        ) : (
+          <span className={
+            issue.status === "Resolved"
+              ? "text-green-600 font-semibold"
+              : issue.status === "In Progress"
+              ? "text-yellow-600 font-semibold"
+              : "text-red-600 font-semibold"
+          }>
+            {issue.status}
+          </span>
+        )}
+      </td>
+
+      <td className="p-4">
+        {editing === issue._id ? (
+          <textarea
+            value={resolutionNotes}
+            onChange={e => setResolutionNotes(e.target.value)}
+            className="border rounded-lg w-full px-2 py-1"
+          />
+        ) : (
+          issue.resolutionNotes || "-"
+        )}
+      </td>
+
+      <td className="p-4">
+        {editing === issue._id ? (
+          <select
+            value={assignedTo}
+            onChange={e => setAssignedTo(e.target.value)}
+            className="border px-3 py-1 rounded-lg"
+          >
+            <option value="">Select staff...</option>
+            {STAFF_OPTIONS.map(s => (
+              <option key={s}>{s}</option>
+            ))}
+          </select>
+        ) : (
+          issue.assignedTo || "Unassigned"
+        )}
+      </td>
+
+      <td className="p-4 space-x-2">
+        {editing === issue._id ? (
+          <>
+            <button
+              onClick={() => saveChanges(issue._id)}
+              className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg shadow"
+            >
+              Save
+            </button>
+            <button
+              onClick={cancelEdit}
+              className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1.5 rounded-lg shadow"
+            >
+              Cancel
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={() => startEdit(issue)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg shadow"
+            >
+              Edit
+            </button>
+            <button
+              onClick={() => deleteIssue(issue._id)}
+              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg shadow"
+            >
+              Delete
+            </button>
+          </>
+        )}
+      </td>
+
+    </tr>
+  ))}
+</tbody>
+
+      </table>
+      {/* 📱 Mobile Issue Cards */}
+{/* 📱 Mobile Issue Cards */}
+<div className="md:hidden space-y-4">
+  {issues.map(issue => (
+    <div key={issue._id} className="bg-white p-4 rounded-2xl shadow border">
+
+      {/* Header */}
+      <div className="flex justify-between items-start">
+        <h3 className="font-bold text-lg">{issue.title}</h3>
+
+        {editing === issue._id ? (
+          <select
+            value={status}
+            onChange={e => setStatus(e.target.value)}
+            className="border px-2 py-1 rounded"
+          >
+            {STATUS_OPTIONS.map(s => <option key={s}>{s}</option>)}
+          </select>
+        ) : (
+          <span className={`text-sm font-semibold ${
+            issue.status === "Resolved" ? "text-green-600" :
+            issue.status === "In Progress" ? "text-yellow-600" :
+            "text-red-600"
+          }`}>
+            {issue.status}
+          </span>
+        )}
+      </div>
+
+      <p className="text-sm text-slate-600 mt-1">
+        Category: {issue.category}
+      </p>
+
+      {/* Resolution */}
+      <div className="mt-2">
+        <p className="text-sm font-medium">Resolution</p>
+        {editing === issue._id ? (
+          <textarea
+            value={resolutionNotes}
+            onChange={e => setResolutionNotes(e.target.value)}
+            className="border rounded w-full px-2 py-1 text-sm"
+          />
+        ) : (
+          <p className="text-sm">{issue.resolutionNotes || "-"}</p>
+        )}
+      </div>
+
+      {/* Assigned */}
+      <div className="mt-2">
+        <p className="text-sm font-medium">Assigned</p>
+        {editing === issue._id ? (
+          <select
+            value={assignedTo}
+            onChange={e => setAssignedTo(e.target.value)}
+            className="border rounded px-2 py-1 text-sm w-full"
+          >
+            <option value="">Select staff...</option>
+            {STAFF_OPTIONS.map(s => <option key={s}>{s}</option>)}
+          </select>
+        ) : (
+          <p className="text-sm">{issue.assignedTo || "Unassigned"}</p>
+        )}
+      </div>
+
+      {/* Buttons */}
+      <div className="flex gap-3 mt-4">
+        {editing === issue._id ? (
+          <>
+            <button
+              onClick={() => saveChanges(issue._id)}
+              className="flex-1 bg-green-600 text-white py-2 rounded-lg shadow"
+            >
+              Save
+            </button>
+            <button
+              onClick={cancelEdit}
+              className="flex-1 bg-gray-500 text-white py-2 rounded-lg shadow"
+            >
+              Cancel
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={() => startEdit(issue)}
+              className="flex-1 bg-blue-600 text-white py-2 rounded-lg shadow"
+            >
+              Edit
+            </button>
+            <button
+              onClick={() => deleteIssue(issue._id)}
+              className="flex-1 bg-red-600 text-white py-2 rounded-lg shadow"
+            >
+              Delete
+            </button>
+          </>
+        )}
       </div>
 
     </div>
-  );
+  ))}
+</div>
+
+
+    </div>
+
+  </div>
+);
+
+
 };
 
 export default AdminDashboard;
