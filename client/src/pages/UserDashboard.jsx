@@ -13,7 +13,7 @@ const UserDashboard = () => {
   useEffect(() => {
     async function fetchUserIssues() {
       try {
-        const res = await fetch("https://cgc-hacathon-backend.onrender.com/api/issues/my", {
+        const res = await fetch("https://civic-issue-portal-2.onrender.com/api/issues/my", {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.ok) {
@@ -104,7 +104,7 @@ const UserDashboard = () => {
                   src={
                     issue.imageURL.startsWith("http")
                       ? issue.imageURL
-                      : `http://localhost:8080/${issue.imageURL.replace(
+                      : `https://civic-issue-portal-2.onrender.com/${issue.imageURL.replace(
                           /\\/g,
                           "/"
                         )}`

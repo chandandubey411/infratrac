@@ -14,7 +14,7 @@ export default function ChatBot() {
 
     const token = localStorage.getItem("token");
 
-    const res = await fetch("http://localhost:8080/api/chatbot/chat", {
+    const res = await fetch("https://civic-issue-portal-2.onrender.com/api/chatbot/chat", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

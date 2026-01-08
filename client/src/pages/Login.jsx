@@ -30,7 +30,7 @@ const Login = () => {
 
     if (Object.keys(errs).length === 0) {
       try {
-        const url = "https://cgc-hacathon-backend.onrender.com/api/auth/login";
+        const url = "https://civic-issue-portal-2.onrender.com/api/auth/login";
         const response = await fetch(url, {
           method: "POST",
           headers: { "Content-Type": "application/json" },

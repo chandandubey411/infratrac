@@ -7,7 +7,7 @@ function Issue() {
   const user = localStorage.getItem("loggedInUser");
 
   useEffect(() => {
-    fetch("https://cgc-hacathon-backend.onrender.com/api/issues")
+    fetch("https://civic-issue-portal-2.onrender.com/api/issues")
       .then((res) => res.json())
       .then((data) => {
         setIssues(data);

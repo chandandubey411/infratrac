@@ -117,7 +117,7 @@ export default function ReportIssue() {
     if (aiLoading) return;
     try {
       setAiLoading(true);
-      const res = await fetch("http://localhost:8080/api/ai/analyze", {
+      const res = await fetch("https://civic-issue-portal-2.onrender.com/api/ai/analyze", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -146,7 +146,7 @@ export default function ReportIssue() {
 
     try {
       setAiLoading(true);
-      const res = await fetch("http://localhost:8080/api/ai/image", {
+      const res = await fetch("https://civic-issue-portal-2.onrender.com/api/ai/image", {
         method: "POST",
         body: fd,
       });
@@ -173,7 +173,7 @@ export default function ReportIssue() {
     const fd = new FormData();
     Object.entries(form).forEach(([k, v]) => fd.append(k, v));
 
-    await fetch("https://cgc-hacathon-backend.onrender.com/api/issues", {
+    await fetch("https://civic-issue-portal-2.onrender.com/api/issues", {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
       body: fd,

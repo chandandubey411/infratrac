@@ -131,7 +131,7 @@ const AdminDashboard = () => {
 
   const fetchAITrends = async () => {
     try {
-      const res = await fetch("https://cgc-hacathon-backend.onrender.com/api/ai/trends", {
+      const res = await fetch("https://civic-issue-portal-2.onrender.com/api/ai/trends", {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -149,7 +149,7 @@ const AdminDashboard = () => {
 
 
   const fetchData = async () => {
-    const res = await fetch("https://cgc-hacathon-backend.onrender.com/api/issues", {
+    const res = await fetch("https://civic-issue-portal-2.onrender.com/api/issues", {
       headers: { Authorization: `Bearer ${token}` },
     });
     const data = await res.json();
@@ -159,7 +159,7 @@ const AdminDashboard = () => {
   };
 
     const fetchHeatmap = async () => {
-      const res = await fetch("http://localhost:8080/api/admin/issues/heatmap", {
+      const res = await fetch("https://civic-issue-portal-2.onrender.com/api/admin/issues/heatmap", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -168,7 +168,7 @@ const AdminDashboard = () => {
 
 
   const fetchAIPriorityIssues = async () => {
-    const res = await fetch("http://localhost:8080/api/admin/issues/ai-priority", {
+    const res = await fetch("https://civic-issue-portal-2.onrender.com/api/admin/issues/ai-priority", {
       headers: { Authorization: `Bearer ${token}` },
     });
     const data = await res.json();
@@ -215,7 +215,7 @@ const AdminDashboard = () => {
   };
 
   const saveChanges = async (id) => {
-    const res = await fetch(`https://cgc-hacathon-backend.onrender.com/api/admin/issues/${id}`, {
+    const res = await fetch(`https://civic-issue-portal-2.onrender.com/api/admin/issues/${id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -233,7 +233,7 @@ const AdminDashboard = () => {
   const deleteIssue = async (id) => {
     if (!window.confirm("Delete this issue?")) return;
 
-    await fetch(`https://cgc-hacathon-backend.onrender.com/api/admin/issues/${id}`, {
+    await fetch(`https://civic-issue-portal-2.onrender.com/api/admin/issues/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
