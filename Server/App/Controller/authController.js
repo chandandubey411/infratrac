@@ -1,5 +1,5 @@
 const User = require('../Models/User.js');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -58,8 +58,9 @@ exports.login = async (req, res) => {
       message: "sign in successfully"
     });
 
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: 'Server error' });
-  }
+ } catch (err) {
+  console.error("REGISTER CRASH ====>", err);
+  return res.status(500).json({ error: err.message, stack: err.stack });
+}
+
 };
