@@ -27,15 +27,12 @@ connectDB();
 
 app.use(express.urlencoded({ extended: true }));
 
-// 🔥 CORS + JSON (must be before routes)
+
 app.use(cors({
-  origin: [
-    "https://e-portal-omega.vercel.app"
-  ],
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  origin: true,
   credentials: true
 }));
+
 
 app.use(express.json());
 
