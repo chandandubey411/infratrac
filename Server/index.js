@@ -29,10 +29,14 @@ app.use(express.urlencoded({ extended: true }));
 
 // 🔥 CORS + JSON (must be before routes)
 app.use(cors({
-  origin: "*",
+  origin: [
+    "https://e-portal-omega.vercel.app"
+  ],
   methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
 }));
+
 app.use(express.json());
 
 const uploadDir = path.join(__dirname, "uploads");
