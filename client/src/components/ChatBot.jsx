@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { FiMessageCircle, FiX } from "react-icons/fi";
+
 
 export default function ChatBot() {
   const [open, setOpen] = useState(false);
@@ -30,12 +32,13 @@ export default function ChatBot() {
 
   return (
     <>
-      <div
+     <div
         onClick={() => setOpen(!open)}
-        className="fixed bottom-6 right-6 bg-blue-600 text-white p-4 rounded-full cursor-pointer shadow-xl"
+        className="fixed bottom-6 right-6 bg-blue-600 text-white w-14 h-14 rounded-full cursor-pointer shadow-xl flex items-center justify-center text-2xl transition-all duration-200 hover:scale-105"
       >
-        💬
+        {open ? <FiX /> : <FiMessageCircle />}
       </div>
+
 
       {open && (
         <div className="fixed bottom-20 right-6 w-80 bg-white shadow-xl rounded-xl overflow-hidden">

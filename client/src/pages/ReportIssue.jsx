@@ -9,6 +9,51 @@ import { ToastContainer } from "react-toastify";
 import { handleSuccess } from "../Utils";
 import { useNavigate } from "react-router-dom";
 
+
+
+/* 📍 Fixed Center Pin */
+const CenterPin = () => (
+  <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[500]">
+    <img
+      src="https://cdn-icons-png.flaticon.com/512/684/684908.png"
+      alt="pin"
+      className="w-8 h-8 -translate-y-4"
+    />
+  </div>
+);
+
+/* 🧭 Update form when map moves */
+function MapCenterUpdater({ setForm }) {
+  const map = useMapEvents({
+    moveend: async () => {
+      const center = map.getCenter();
+      const lat = center.lat;
+      const lng = center.lng;
+
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+      );
+      const data = await res.json();
+
+      setForm((prev) => ({
+        ...prev,
+        latitude: lat,
+        longitude: lng,
+        address: data.display_name || "",
+        city:
+          data.address?.city ||
+          data.address?.town ||
+          data.address?.village ||
+          "",
+        state: data.address?.state || "",
+      }));
+    },
+  });
+
+  return null;
+}
+
+
 /* 🔹 Leaflet marker fix */
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: markerIcon2x,
@@ -114,20 +159,23 @@ export default function ReportIssue() {
   }, [form.title, form.description]);
 
   const analyzeText = async () => {
-    if (aiLoading) return;
+    if (aiLoading || !token) return;
     try {
       setAiLoading(true);
-      const res = await fetch("https://civic-issue-portal-2.onrender.com/api/ai/analyze", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          title: form.title,
-          description: form.description,
-        }),
-      });
+      const res = await fetch(
+        "https://civic-issue-portal-2.onrender.com/api/ai/analyze",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            title: form.title,
+            description: form.description,
+          }),
+        }
+      );
       const data = await res.json();
       setAiSuggestion(data);
       setForm((p) => ({ ...p, category: data.category || p.category }));
@@ -138,6 +186,8 @@ export default function ReportIssue() {
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
+    if (!file) return;
+
     setForm((p) => ({ ...p, image: file }));
     setImagePreview(URL.createObjectURL(file));
 
@@ -146,10 +196,13 @@ export default function ReportIssue() {
 
     try {
       setAiLoading(true);
-      const res = await fetch("https://civic-issue-portal-2.onrender.com/api/ai/image", {
-        method: "POST",
-        body: fd,
-      });
+      const res = await fetch(
+        "https://civic-issue-portal-2.onrender.com/api/ai/image",
+        {
+          method: "POST",
+          body: fd,
+        }
+      );
       const data = await res.json();
       setForm((p) => ({
         ...p,
@@ -168,19 +221,37 @@ export default function ReportIssue() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // 🔐 Validation layer (MAIN FIX)
+    if (!token) return handleSuccess("Please login first");
+    if (!form.title.trim()) return handleSuccess("Please enter issue title");
+    if (!form.description.trim())
+      return handleSuccess("Please enter issue description");
+
     setSubmitting(true);
 
-    const fd = new FormData();
-    Object.entries(form).forEach(([k, v]) => fd.append(k, v));
+    try {
+      const fd = new FormData();
+      Object.entries(form).forEach(([k, v]) => fd.append(k, v));
 
-    await fetch("https://civic-issue-portal-2.onrender.com/api/issues", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-      body: fd,
-    });
+      const res = await fetch(
+        "https://civic-issue-portal-2.onrender.com/api/issues",
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: fd,
+        }
+      );
 
-    handleSuccess("Issue reported successfully!");
-    setTimeout(() => navigate("/user/dashboard"), 1000);
+      if (!res.ok) throw new Error("Submission failed");
+
+      handleSuccess("Issue reported successfully!");
+      setTimeout(() => navigate("/user/dashboard"), 1000);
+    } catch {
+      handleSuccess("Something went wrong");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -231,11 +302,7 @@ export default function ReportIssue() {
 
           <div>
             <p className="section-title">Detected Location</p>
-            <input
-              value={form.address}
-              readOnly
-              className="input bg-gray-100"
-            />
+            <input value={form.address} readOnly className="input bg-gray-100" />
           </div>
 
           <div>
@@ -256,28 +323,37 @@ export default function ReportIssue() {
           )}
 
           {/* 🗺️ MAP */}
-          <div>
-            <p className="section-title">Confirm Location on Map</p>
-            <div className="h-72 rounded-lg overflow-hidden border">
-              {form.latitude && form.longitude && (
+          {/* 🗺️ MAP */}
+        <div>
+          <p className="section-title">Confirm Location on Map</p>
+
+          <div className="relative h-72 rounded-lg overflow-hidden border">
+            {form.latitude && form.longitude && (
+              <>
                 <MapContainer
                   center={[Number(form.latitude), Number(form.longitude)]}
-                  zoom={15}
-                  style={{ height: "100%", width: "100%" }}
+                  zoom={16}
+                  scrollWheelZoom
+                  className="h-full w-full"
                 >
-                  <TileLayer
-                    url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-                  />
-                  <LocationPicker setForm={setForm} />
-                  <Marker position={[form.latitude, form.longitude]} />
+                  <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
+                  <MapCenterUpdater setForm={setForm} />
                 </MapContainer>
-              )}
-            </div>
+
+                {/* 📍 FIXED CENTER PIN */}
+                <CenterPin />
+              </>
+            )}
           </div>
+        </div>
 
           <button
-            disabled={submitting}
-            className="w-full bg-blue-600 hover:bg-blue-700 transition text-white py-3 rounded-full font-semibold text-lg"
+            disabled={
+              submitting ||
+              !form.title.trim() ||
+              !form.description.trim()
+            }
+            className="w-full bg-blue-600 disabled:bg-gray-400 hover:bg-blue-700 transition text-white py-3 rounded-full font-semibold text-lg"
           >
             {submitting ? "Submitting..." : "Submit Issue"}
           </button>
