@@ -16,3 +16,8 @@
 .section-title {
   @apply text-sm font-semibold text-gray-600 mb-1;
 }
+
+html, body {
+  width: 100%;
+  overflow-x: hidden;
+}
