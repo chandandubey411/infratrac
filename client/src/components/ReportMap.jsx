@@ -30,7 +30,7 @@ function ReportMap() {
   if (loading) return <SnailLoader />;
 
   return (
-    <div className="p-8 bg-gray-50 min-h-screen">
+    <div className="p-8 bg-gray-50 ">
       {/* Header */}
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-extrabold text-gray-900">

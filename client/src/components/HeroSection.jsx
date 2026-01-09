@@ -36,12 +36,17 @@ const Hero = () => {
               <ArrowRight className="w-5 h-5" />
             </Link>
 
-            <Link
-              className="flex items-center justify-center gap-2 border border-gray-300 text-gray-800 px-6 py-3 rounded-md shadow-sm hover:bg-gray-100 transition-all duration-300 font-medium"
-            >
-              <MapPin className="w-5 h-5 text-green-600" />
-              View Reports
-            </Link>
+            <button
+                  onClick={() => {
+                    const section = document.getElementById("report-categories");
+                    section?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="flex items-center justify-center gap-2 border border-gray-300 text-gray-800 px-6 py-3 rounded-md shadow-sm hover:bg-gray-100 transition-all duration-300 font-medium"
+                >
+                  <MapPin className="w-5 h-5 text-green-600" />
+                      View Reports
+           </button>
+
           </div>
 
         

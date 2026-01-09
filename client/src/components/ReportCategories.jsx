@@ -51,7 +51,8 @@ const ReportCategories = () => {
         })
       },[])
   return (
-    <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
+    <section 
+      className="py-20 bg-gradient-to-b from-gray-50 to-white">
       <div className="text-center mb-14 px-6">
         <h2 className="text-4xl font-extrabold text-gray-900">
           What Can You Report?

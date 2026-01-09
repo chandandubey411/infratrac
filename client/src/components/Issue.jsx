@@ -30,7 +30,7 @@ function Issue() {
   if (loading) return <SnailLoader />;
 
   return (
-    <div className="p-8 bg-gray-50 min-h-screen">
+    <div className="p-8 bg-gray-50 ">
       <div className="mb-10">
         <h1 className="text-3xl font-extrabold text-gray-900 mb-2">
           Welcome, <span className="text-indigo-600">{user}</span>
@@ -48,6 +48,7 @@ function Issue() {
       <div className="flex overflow-x-auto gap-6 pb-4">
         {issues.map((issue) => (
           <div
+            id="report-categories"
             key={issue._id}
             className="bg-white min-w-[350px] rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100"
           >
