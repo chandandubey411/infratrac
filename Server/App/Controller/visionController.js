@@ -1,5 +1,4 @@
 const OpenAI = require("openai");
-const fs = require("fs");
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -9,7 +8,7 @@ exports.analyzeImage = async (req, res) => {
       return res.status(400).json({ message: "No image uploaded" });
     }
 
-    const base64 = fs.readFileSync(req.file.path, "base64");
+    const base64 = req.file.buffer.toString("base64");
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -63,7 +62,6 @@ Return ONLY valid JSON:
 
     const text = response.choices[0].message.content;
 
-    // 🔐 Robust JSON extraction
     let result;
     try {
       const jsonStart = text.indexOf("{");
