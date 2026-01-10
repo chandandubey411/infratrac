@@ -157,7 +157,10 @@ exports.analyzeImage = async (req, res) => {
     res.json(json);
 
   } catch (err) {
-    console.error("AI IMAGE ERROR:", err);
-    res.status(500).json({ error: "AI image analysis failed" });
-  }
+  console.error("🔥 AI IMAGE ERROR FULL:", err?.response?.data || err);
+  res.status(500).json({
+    error: "AI image analysis failed",
+    details: err?.response?.data || err?.message || "Unknown error"
+  });
+}
 };
