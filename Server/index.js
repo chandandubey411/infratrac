@@ -113,6 +113,8 @@ app.use("/api/location", locationRoutes);
 // 🧠 AI ROUTES
 app.use("/api/ai", aiRoutes);
 app.use("/api/vision", visionRoutes);
+// app.use("/api/vision", require("./routes/visionRoutes"));
+
 
 // 🧪 Health Check
 app.get("/ping", (req, res) => res.send("pong"));

@@ -99,7 +99,7 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 exports.analyzeImage = async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ message: "No image uploaded" });
+      return res.status(400).json({ error: "No image uploaded" });
     }
 
     const base64 = req.file.buffer.toString("base64");
@@ -113,14 +113,13 @@ exports.analyzeImage = async (req, res) => {
             {
               type: "input_text",
               text: `
-Detect the main civic issue in this image and return ONLY JSON:
+Detect the main civic issue from this image.
 
+Return ONLY strict JSON:
 {
-  "title": "",
-  "description": "",
-  "category": "",
-  "priority": "Low | Medium | High",
-  "suggestedAction": ""
+ "title": "",
+ "description": "",
+ "category": ""
 }`
             },
             {
@@ -132,18 +131,13 @@ Detect the main civic issue in this image and return ONLY JSON:
       ]
     });
 
-    const text = response.output_text;
-    const json = JSON.parse(text.match(/\{[\s\S]*\}/)[0]);
+    const result = JSON.parse(response.output_text);
+    res.json(result);
 
-    res.json(json);
   } catch (err) {
     console.error("AI IMAGE ERROR:", err);
-    res.status(500).json({
-      title: "Manual Review Required",
-      description: "AI failed",
-      category: "Other",
-      priority: "Medium",
-      suggestedAction: "Manual verification required"
-    });
+    res.status(500).json({ error: "AI image processing failed" });
   }
 };
+
+
