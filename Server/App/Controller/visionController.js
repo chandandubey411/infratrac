@@ -93,17 +93,19 @@
 // };
 
 
-const OpenAI = require("openai");
 const cloudinary = require("cloudinary").v2;
 const streamifier = require("streamifier");
+
+// 🧠 Force OpenAI SDK to read env directly
+process.env.OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+
+const OpenAI = require("openai");
 
 // 🧪 Debug: verify key on Render
 console.log("OPENAI KEY EXISTS:", process.env.OPENAI_API_KEY ? "YES" : "NO");
 
-// 🧠 OpenAI Client
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+// 🧠 OpenAI Client (NO constructor args)
+const client = new OpenAI();
 
 // ☁️ Cloudinary Config
 cloudinary.config({
