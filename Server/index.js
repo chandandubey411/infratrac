@@ -17,12 +17,15 @@ const cors = require("cors");
 app.use(cors({
   origin: [
     "http://localhost:5173",
-    "https://civic-issue-portal-2.onrender.com"
+    "https://civic-issue-portal-2.onrender.com",
+    "https://civic-issue-portal-omega.vercel.app"
   ],
   credentials: true,
   allowedHeaders: ["Content-Type", "Authorization"],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
 }));
+app.options("*", cors());
+
 
 // 🌐 Body Parsers
 app.use(express.urlencoded({ extended: true }));
