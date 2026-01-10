@@ -93,6 +93,7 @@
 // };
 
 
+console.log("OPENAI KEY EXISTS:", process.env.OPENAI_API_KEY ? "YES" : "NO");
 const OpenAI = require("openai");
 const cloudinary = require("cloudinary").v2;
 const streamifier = require("streamifier");
