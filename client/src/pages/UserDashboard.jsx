@@ -104,7 +104,7 @@ const UserDashboard = () => {
                   src={
                     issue.imageURL.startsWith("http")
                       ? issue.imageURL
-                      : `http://localhost:8080/${issue.imageURL.replace(
+                      : `https://civic-issue-portal-2.onrender.com/${issue.imageURL.replace(
                           /\\/g,
                           "/"
                         )}`

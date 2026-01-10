@@ -202,6 +202,7 @@ export default function ReportIssue() {
               onChange={handleChange}
               className="input"
               placeholder="Eg: Garbage near main road"
+              required
             />
           </div>
 
@@ -214,6 +215,7 @@ export default function ReportIssue() {
               rows="3"
               className="input"
               placeholder="Explain problem clearly..."
+              required
             />
           </div>
 
@@ -243,6 +245,7 @@ export default function ReportIssue() {
             <input
               type="file"
               onChange={handleImageChange}
+              required
               className="block w-full text-sm file:bg-blue-600 file:text-white file:px-4 file:py-2 file:rounded file:border-0 file:cursor-pointer"
             />
           </div>
@@ -250,7 +253,7 @@ export default function ReportIssue() {
           {imagePreview && (
             <img
               src={imagePreview}
-              className="h-40 w-full object-cover rounded-lg border"
+              className="h-40 w-full object-contain rounded-lg border"
               alt="preview"
             />
           )}
