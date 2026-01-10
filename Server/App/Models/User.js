@@ -35,6 +35,9 @@ const userSchema = new mongoose.Schema(
         "Traffic & Road Safety Cell",
         "Building & Construction Division",
       ],
+      required: function () {
+        return this.role === "worker";
+      },
     },
   },
   { timestamps: true }

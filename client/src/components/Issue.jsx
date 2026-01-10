@@ -1,13 +1,25 @@
 import React, { useEffect, useState } from "react";
 import SnailLoader from "../components/Loader";
 
+
+
+const cleanPath = (path) => {
+  if (!path) return null;
+
+  return `https://civic-issue-portal-2.onrender.com/${path
+    .replace(/^.*?uploads/, "uploads")
+    .replace(/\\/g, "/")
+    .replace(/\/+/g, "/")}`;
+};
+
+
 function Issue() {
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
   const user = localStorage.getItem("loggedInUser");
 
   useEffect(() => {
-    fetch("https://cgc-hacathon-backend.onrender.com/api/issues")
+    fetch("https://civic-issue-portal-2.onrender.com/api/issues")
       .then((res) => res.json())
       .then((data) => {
         setIssues(data);
@@ -18,7 +30,7 @@ function Issue() {
   if (loading) return <SnailLoader />;
 
   return (
-    <div className="p-8 bg-gray-50 min-h-screen">
+    <div className="p-8 bg-gray-50 ">
       <div className="mb-10">
         <h1 className="text-3xl font-extrabold text-gray-900 mb-2">
           Welcome, <span className="text-indigo-600">{user}</span>
@@ -36,24 +48,22 @@ function Issue() {
       <div className="flex overflow-x-auto gap-6 pb-4">
         {issues.map((issue) => (
           <div
+            id="report-categories"
             key={issue._id}
             className="bg-white min-w-[350px] rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100"
           >
             {/* Image section */}
             {issue.imageURL && (
               <div className="relative">
-                <img
-                  src={
-                    issue.imageURL.startsWith("http")
-                      ? issue.imageURL
-                      : `http://localhost:8080/${issue.imageURL.replace(
-                          "\\",
-                          "/"
-                        )}`
-                  }
+               <img
+                  src={cleanPath(issue.imageURL)}
                   alt={issue.title}
                   className="h-48 w-full object-cover rounded-t-xl"
-                />
+                  loading="lazy"
+                  onError={(e) => (e.target.style.display = "none")}
+              />
+
+
                 <div className="absolute top-3 left-3 bg-white/80 text-xs font-semibold px-2 py-1 rounded-lg text-gray-800 backdrop-blur">
                   {issue.category}
                 </div>

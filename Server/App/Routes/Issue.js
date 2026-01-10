@@ -1,24 +1,21 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const multer = require('multer');
 const { auth } = require("../Middleware/auth");
-const { createIssue, getIssues, getUserIssues } = require('../Controller/IssueController.js');
+const upload = require("../Middleware/upload");
 
+const {
+  createIssue,
+  getIssues,
+  getUserIssues
+} = require("../Controller/IssueController");
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/'); 
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname);
-  }
-});
-const upload = multer({ storage: storage });
+// 🆕 Create Issue with Cloudinary upload
+router.post("/", auth, upload.single("image"), createIssue);
 
+// 📦 Fetch all issues
+router.get("/", getIssues);
 
-router.post('/', auth, upload.single('image'), createIssue);
-router.get('/', getIssues);
-router.get('/my', auth, getUserIssues);
-
+// 👤 Fetch logged-in user's issues
+router.get("/my", auth, getUserIssues);
 
 module.exports = router;
