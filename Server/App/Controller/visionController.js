@@ -97,9 +97,11 @@ const cloudinary = require("cloudinary").v2;
 const streamifier = require("streamifier");
 const OpenAI = require("openai");
 
-console.log("OPENAI KEY EXISTS:", process.env.OPENAI_API_KEY ? "YES" : "NO");
+console.log("OPENAI KEY EXISTS:", !!process.env.OPENAI_API_KEY);
 
-const client = new OpenAI();
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
 
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -109,22 +111,15 @@ cloudinary.config({
 
 exports.analyzeImage = async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ error: "No image uploaded" });
-    }
+    if (!req.file) return res.status(400).json({ error: "No image uploaded" });
 
     const uploadResult = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
         { folder: "civic-issues" },
-        (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
-        }
+        (error, result) => error ? reject(error) : resolve(result)
       );
       streamifier.createReadStream(req.file.buffer).pipe(stream);
     });
-
-    const imageUrl = uploadResult.secure_url;
 
     const response = await client.responses.create({
       model: "gpt-4.1-mini",
@@ -132,20 +127,19 @@ exports.analyzeImage = async (req, res) => {
         {
           role: "user",
           content: [
-            { type: "input_text", text: `Detect the main civic issue and return ONLY JSON.` },
-            { type: "input_image", image_url: imageUrl }
+            { type: "input_text", text: "Detect the civic issue and return JSON only." },
+            { type: "input_image", image_url: uploadResult.secure_url }
           ]
         }
       ]
     });
 
-    const outputText = response.output[0].content[0].text;
-    const json = JSON.parse(outputText);
-
-    res.json(json);
+    const result = response.output[0].content[0].text;
+    res.json(JSON.parse(result));
   } catch (err) {
-    console.error("🔥 AI IMAGE ERROR FULL:", err);
+    console.error("🔥 AI ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 };
+
 
