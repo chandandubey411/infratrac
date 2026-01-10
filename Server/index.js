@@ -6,12 +6,31 @@ process.on("uncaughtException", err => {
   console.error("💥 UNCAUGHT EXCEPTION:", err);
 });
 
-
 const express = require("express");
 const app = express();
 require("dotenv").config();
 const connectDB = require("./App/Config/db");
 const cors = require("cors");
+
+
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
+app.use(cors());
+
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
 
 const chatbotRoutes = require("./App/Routes/chatbotRoutes");
 const visionRoutes = require("./App/Routes/visionRoutes");
@@ -22,39 +41,7 @@ const aiRoutes = require("./App/Routes/aiRoutes");
 const workerRoutes = require("./App/Routes/worker");
 const locationRoutes = require("./App/Routes/location");
 
-// ⚠️ Multer routes FIRST
 app.use("/api/ai", visionRoutes);
-
-// 🌐 Body parsers AFTER
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-
-app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://civic-issue-portal-2.onrender.com"
-  ],
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true
-}));
-
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
-  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  res.header("Access-Control-Allow-Credentials", "true");
-
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
-  }
-
-  next();
-});
-
-
-
-// Other routes
 app.use("/api/auth", authRoutes);
 app.use("/api/issues", issueRoutes);
 app.use("/api/admin/issues", adminRoutes);
@@ -63,7 +50,9 @@ app.use("/api/worker", workerRoutes);
 app.use("/api/chatbot", chatbotRoutes);
 app.use("/api/location", locationRoutes);
 
+
 app.get("/ping", (req, res) => res.send("pong"));
+
 
 const startServer = async () => {
   await connectDB();
@@ -72,6 +61,3 @@ const startServer = async () => {
 };
 
 startServer();
-
-
-
