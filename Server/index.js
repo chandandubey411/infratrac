@@ -100,7 +100,8 @@ const workerRoutes = require("./App/Routes/worker");
 const chatbotRoutes = require("./App/Routes/chatbotRoutes");
 const locationRoutes = require("./App/Routes/location");
 const aiRoutes = require("./App/Routes/aiRoutes");
-const visionRoutes = require("./App/Routes/visionRoutes");
+// const visionRoutes = require("./App/Routes/visionRoutes");
+const visionRoutes = require("./Routes/visionRoutes");
 
 // 🔌 Route mounting
 app.use("/api/auth", authRoutes);
@@ -112,6 +113,7 @@ app.use("/api/location", locationRoutes);
 
 // 🧠 AI ROUTES
 app.use("/api/ai", aiRoutes);
+// app.use("/api/vision", visionRoutes);
 app.use("/api/vision", visionRoutes);
 // app.use("/api/vision", require("./routes/visionRoutes"));
 

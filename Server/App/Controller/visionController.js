@@ -94,17 +94,39 @@
 
 
 const OpenAI = require("openai");
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const cloudinary = require("cloudinary").v2;
+const streamifier = require("streamifier");
+
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUD_API_KEY,
+  api_secret: process.env.CLOUD_API_SECRET
+});
 
 exports.analyzeImage = async (req, res) => {
   try {
-    if (!req.file || !req.file.buffer) {
+    if (!req.file) {
       return res.status(400).json({ error: "No image uploaded" });
     }
 
-    const base64 = req.file.buffer.toString("base64");
+    // ⬆️ Upload image to Cloudinary
+    const uploadResult = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder: "civic-issues" },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      streamifier.createReadStream(req.file.buffer).pipe(stream);
+    });
 
-    const response = await openai.responses.create({
+    const imageUrl = uploadResult.secure_url;
+
+    // 🧠 Send to OpenAI Vision
+    const response = await client.responses.create({
       model: "gpt-4.1-mini",
       input: [
         {
@@ -112,38 +134,30 @@ exports.analyzeImage = async (req, res) => {
           content: [
             {
               type: "input_text",
-              text: `
-Detect the main civic issue from this image.
-Return ONLY strict JSON:
+              text: `Detect the main civic issue and return ONLY JSON:
 {
  "title": "",
  "description": "",
- "category": ""
+ "category": "",
+ "priority": "Low | Medium | High",
+ "suggestedAction": ""
 }`
             },
             {
               type: "input_image",
-              image_base64: base64
+              image_url: imageUrl
             }
           ]
         }
       ]
     });
 
-    const text = response.output_text;
+    const json = JSON.parse(response.output_text);
 
-    let result;
-    try {
-      result = JSON.parse(text);
-    } catch {
-      console.error("Invalid AI JSON:", text);
-      return res.status(500).json({ error: "Invalid AI response" });
-    }
-
-    res.json(result);
+    res.json(json);
 
   } catch (err) {
     console.error("AI IMAGE ERROR:", err);
-    res.status(500).json({ error: "AI image processing failed", details: err.message });
+    res.status(500).json({ error: "AI image analysis failed" });
   }
 };
