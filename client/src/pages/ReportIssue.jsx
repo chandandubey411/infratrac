@@ -207,19 +207,20 @@ const handleImageChange = async (e) => {
   const fd = new FormData();
   fd.append("image", file);
 
-  try {
-    setAiLoading(true);
+        try {
+              setAiLoading(true);
 
-    const res = await fetch(
-      "https://civic-issue-portal-2.onrender.com/api/ai/image",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: fd,
-      }
-    );
+              const res = await fetch(
+            "https://civic-issue-portal-2.onrender.com/api/vision/image",
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+              body: fd,
+            }
+      );
+
 
     const data = await res.json();
 
