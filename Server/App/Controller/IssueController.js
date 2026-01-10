@@ -3,25 +3,18 @@ const Issue = require("../Models/Issue.js");
 exports.createIssue = async (req, res) => {
   try {
     console.log("BODY:", req.body);
-    console.log("FILE:", req.file);
 
-    const { title, description, category, latitude, longitude } = req.body;
+    const { title, description, category, latitude, longitude, image } = req.body;
 
-    if (!title || !description || !category || !latitude || !longitude) {
+    if (!title || !description || !category || !latitude || !longitude || !image) {
       return res.status(400).json({ message: "All fields are required" });
     }
-
-    if (!req.file || !req.file.secure_url) {
-      return res.status(400).json({ message: "Image upload failed" });
-    }
-
-    const imageURL = req.file.secure_url;
 
     const issue = new Issue({
       title,
       description,
       category,
-      imageURL,
+      imageURL: image, // 👈 AI upload se aaya hua Cloudinary URL
       location: {
         latitude: parseFloat(latitude),
         longitude: parseFloat(longitude),
