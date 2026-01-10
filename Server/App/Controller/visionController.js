@@ -95,19 +95,12 @@
 
 const cloudinary = require("cloudinary").v2;
 const streamifier = require("streamifier");
-
-// 🧠 Force OpenAI SDK to read env directly
-process.env.OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-
 const OpenAI = require("openai");
 
-// 🧪 Debug: verify key on Render
 console.log("OPENAI KEY EXISTS:", process.env.OPENAI_API_KEY ? "YES" : "NO");
 
-// 🧠 OpenAI Client (NO constructor args)
 const client = new OpenAI();
 
-// ☁️ Cloudinary Config
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
   api_key: process.env.CLOUD_API_KEY,
@@ -120,7 +113,6 @@ exports.analyzeImage = async (req, res) => {
       return res.status(400).json({ error: "No image uploaded" });
     }
 
-    // 📤 Upload to Cloudinary
     const uploadResult = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
         { folder: "civic-issues" },
@@ -134,42 +126,26 @@ exports.analyzeImage = async (req, res) => {
 
     const imageUrl = uploadResult.secure_url;
 
-    // 🧠 OpenAI Vision Call
     const response = await client.responses.create({
       model: "gpt-4.1-mini",
-      input: [{
-        role: "user",
-        content: [
-          {
-            type: "input_text",
-            text: `Detect the main civic issue and return ONLY strict JSON:
-{
- "title": "",
- "description": "",
- "category": "",
- "priority": "Low | Medium | High",
- "suggestedAction": ""
-}`
-          },
-          {
-            type: "input_image",
-            image_url: imageUrl
-          }
-        ]
-      }]
+      input: [
+        {
+          role: "user",
+          content: [
+            { type: "input_text", text: `Detect the main civic issue and return ONLY JSON.` },
+            { type: "input_image", image_url: imageUrl }
+          ]
+        }
+      ]
     });
 
-    // 🔥 Correct parsing for new OpenAI SDK
     const outputText = response.output[0].content[0].text;
     const json = JSON.parse(outputText);
 
-    return res.json(json);
-
+    res.json(json);
   } catch (err) {
     console.error("🔥 AI IMAGE ERROR FULL:", err);
-    return res.status(500).json({
-      error: "AI image analysis failed",
-      details: err?.message || "Unknown error"
-    });
+    res.status(500).json({ error: err.message });
   }
 };
+
