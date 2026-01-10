@@ -93,15 +93,13 @@
 // };
 
 
+const OpenAI = require("openai");
 const cloudinary = require("cloudinary").v2;
 const streamifier = require("streamifier");
-const OpenAI = require("openai");
 
-console.log("OPENAI KEY EXISTS:", !!process.env.OPENAI_API_KEY);
+console.log("OPENAI KEY EXISTS:", Boolean(process.env.OPENAI_API_KEY));
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -123,23 +121,20 @@ exports.analyzeImage = async (req, res) => {
 
     const response = await client.responses.create({
       model: "gpt-4.1-mini",
-      input: [
-        {
-          role: "user",
-          content: [
-            { type: "input_text", text: "Detect the civic issue and return JSON only." },
-            { type: "input_image", image_url: uploadResult.secure_url }
-          ]
-        }
-      ]
+      input: [{
+        role: "user",
+        content: [
+          { type: "input_text", text: "Detect the civic issue and return JSON only." },
+          { type: "input_image", image_url: uploadResult.secure_url }
+        ]
+      }]
     });
 
-    const result = response.output[0].content[0].text;
-    res.json(JSON.parse(result));
+    const text = response.output[0].content[0].text;
+    res.json(JSON.parse(text));
+
   } catch (err) {
-    console.error("🔥 AI ERROR:", err);
+    console.error("🔥 AI ERROR FULL:", err);
     res.status(500).json({ error: err.message });
   }
 };
-
-
