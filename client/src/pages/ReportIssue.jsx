@@ -206,7 +206,7 @@ const handleImageChange = async (e) => {
 
   try {
     const res = await fetch(
-      "https://civic-issue-portal-2.onrender.com/api/vision/image",
+      "https://civic-issue-portal-2.onrender.com/api/vision/analyze",
       {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
