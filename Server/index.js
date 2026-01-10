@@ -62,7 +62,7 @@
 
 // startServer();
 
-process.on("unhandledRejection", err => {
+pprocess.on("unhandledRejection", err => {
   console.error("🔥 UNHANDLED REJECTION:", err);
 });
 
@@ -76,7 +76,7 @@ require("dotenv").config();
 const connectDB = require("./App/Config/db");
 const cors = require("cors");
 
-// 🧠 CORS
+// 🧠 CORS — SAFE & STABLE
 app.use(cors({
   origin: [
     "http://localhost:5173",
@@ -86,8 +86,6 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
 }));
-
-app.options("*", cors());
 
 // 🌐 Parsers
 app.use(express.urlencoded({ extended: true }));
@@ -100,10 +98,10 @@ const adminRoutes = require("./App/Routes/admin");
 const workerRoutes = require("./App/Routes/worker");
 const chatbotRoutes = require("./App/Routes/chatbotRoutes");
 const locationRoutes = require("./App/Routes/location");
-const aiRoutes = require("./App/Routes/aiRoutes");          // TEXT AI
-const visionRoutes = require("./App/Routes/visionRoutes");  // IMAGE AI
+const aiRoutes = require("./App/Routes/aiRoutes");
+const visionRoutes = require("./App/Routes/visionRoutes");
 
-// 🔌 Route mounting (ORDER MATTERS)
+// 🔌 Route mounting
 app.use("/api/auth", authRoutes);
 app.use("/api/issues", issueRoutes);
 app.use("/api/admin/issues", adminRoutes);
@@ -112,17 +110,24 @@ app.use("/api/chatbot", chatbotRoutes);
 app.use("/api/location", locationRoutes);
 
 // 🧠 AI ROUTES
-app.use("/api/ai", aiRoutes);           // text analyze
-app.use("/api/vision", visionRoutes);   // image analyze
+app.use("/api/ai", aiRoutes);
+app.use("/api/vision", visionRoutes);
 
+// 🧪 Health Check
 app.get("/ping", (req, res) => res.send("pong"));
 
+// 🚀 Server Boot
 const startServer = async () => {
-  await connectDB();
-  const port = process.env.PORT || 8080;
-  app.listen(port, () =>
-    console.log(`🚀 Server running on port ${port}`)
-  );
+  try {
+    await connectDB();
+    const port = process.env.PORT || 8080;
+    app.listen(port, () => {
+      console.log(`🚀 Server running on port ${port}`);
+    });
+  } catch (err) {
+    console.error("❌ Server failed to start:", err);
+    process.exit(1);
+  }
 };
 
 startServer();
