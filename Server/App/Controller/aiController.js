@@ -6,11 +6,13 @@ const openai = new OpenAI({
 
 exports.analyzeImage = async (req, res) => {
   try {
-    if (!req.file || !req.file.path) {
+    if (!req.file || !req.file.secure_url) {
+      console.error("No file or secure_url:", req.file);
       return res.status(400).json({ error: "No image uploaded" });
     }
 
-    const imageUrl = req.file.path;
+    // ✅ MUST be a public HTTPS URL
+    const imageUrl = req.file.secure_url;
 
     const response = await openai.responses.create({
       model: "gpt-4.1-mini",
@@ -20,18 +22,14 @@ exports.analyzeImage = async (req, res) => {
           content: [
             {
               type: "input_text",
-              text: `
-Detect the main civic issue in this image.
-
-Return strict JSON:
+              text: `Detect the main civic issue in this image and return ONLY strict JSON:
 {
  "title": "",
  "description": "",
  "category": "",
  "priority": "Low | Medium | High",
  "suggestedAction": ""
-}
-`
+}`
             },
             {
               type: "input_image",
