@@ -300,6 +300,7 @@ const handleImageChange = async (e) => {
               onChange={handleChange}
               className="input"
               placeholder="Eg: Garbage near main road"
+              required
             />
           </div>
 
@@ -312,6 +313,7 @@ const handleImageChange = async (e) => {
               rows="3"
               className="input"
               placeholder="Explain problem clearly..."
+              required
             />
           </div>
 
@@ -337,6 +339,7 @@ const handleImageChange = async (e) => {
             <input
               type="file"
               onChange={handleImageChange}
+              required
               className="block w-full text-sm file:bg-blue-600 file:text-white file:px-4 file:py-2 file:rounded file:border-0 file:cursor-pointer"
             />
           </div>
@@ -344,7 +347,7 @@ const handleImageChange = async (e) => {
           {imagePreview && (
             <img
               src={imagePreview}
-              className="h-40 w-full object-cover rounded-lg border"
+              className="h-40 w-full object-contain rounded-lg border"
               alt="preview"
             />
           )}

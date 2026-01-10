@@ -91,7 +91,7 @@ const Navbar = () => {
                 Home
               </Link>
               <Link
-                to="/report"
+                to={islogged ? "/report" : "/login"}
                 onClick={() => setIsOpen(false)}
                 className="block px-4 py-2 font-semibold text-black hover:text-blue-700"
               >
