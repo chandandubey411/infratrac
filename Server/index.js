@@ -12,26 +12,24 @@ require("dotenv").config();
 const connectDB = require("./App/Config/db");
 const cors = require("cors");
 
+// 🧠 CORS — single clean config
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "https://civic-issue-portal-2.onrender.com"
+  ],
+  credentials: true,
+  allowedHeaders: ["Content-Type", "Authorization"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+}));
 
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
-  res.header("Access-Control-Allow-Credentials", "true");
-  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+app.options("*", cors());
 
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
-  }
-  next();
-});
-
-app.use(cors());
-
-
+// 🌐 Body parsers
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-
+// 📦 Routes
 const chatbotRoutes = require("./App/Routes/chatbotRoutes");
 const visionRoutes = require("./App/Routes/visionRoutes");
 const authRoutes = require("./App/Routes/auth");
@@ -41,7 +39,10 @@ const aiRoutes = require("./App/Routes/aiRoutes");
 const workerRoutes = require("./App/Routes/worker");
 const locationRoutes = require("./App/Routes/location");
 
+// ⚠️ Multer first
 app.use("/api/ai", visionRoutes);
+
+// Other routes
 app.use("/api/auth", authRoutes);
 app.use("/api/issues", issueRoutes);
 app.use("/api/admin/issues", adminRoutes);
@@ -50,9 +51,7 @@ app.use("/api/worker", workerRoutes);
 app.use("/api/chatbot", chatbotRoutes);
 app.use("/api/location", locationRoutes);
 
-
 app.get("/ping", (req, res) => res.send("pong"));
-
 
 const startServer = async () => {
   await connectDB();

@@ -193,6 +193,14 @@ const handleImageChange = async (e) => {
   const file = e.target.files[0];
   if (!file) return;
 
+  const token = localStorage.getItem("token");
+  if (!token) {
+    alert("Please login again");
+    return;
+  }
+
+  console.log("TOKEN SENT:", token);
+
   setForm((p) => ({ ...p, image: file }));
   setImagePreview(URL.createObjectURL(file));
 
@@ -201,16 +209,17 @@ const handleImageChange = async (e) => {
 
   try {
     setAiLoading(true);
+
     const res = await fetch(
-          "https://civic-issue-portal-2.onrender.com/api/ai/image",
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-            body: fd,
-          }
-        );
+      "https://civic-issue-portal-2.onrender.com/api/ai/image",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: fd,
+      }
+    );
 
     const data = await res.json();
 
@@ -222,12 +231,15 @@ const handleImageChange = async (e) => {
     }));
 
     setAiSuggestion(data);
-    setImageAnalyzed(true);   // 
-
+    setImageAnalyzed(true);
+  } catch (err) {
+    console.error(err);
+    alert("AI image analysis failed");
   } finally {
     setAiLoading(false);
   }
 };
+
 
 
   const handleChange = (e) =>
