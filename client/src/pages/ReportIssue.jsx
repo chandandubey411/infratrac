@@ -193,42 +193,38 @@ const handleImageChange = async (e) => {
   const file = e.target.files[0];
   if (!file) return;
 
-  const token = localStorage.getItem("token");
   if (!token) {
     alert("Please login again");
     return;
   }
 
-  console.log("TOKEN SENT:", token);
-
-  setForm((p) => ({ ...p, image: file }));
   setImagePreview(URL.createObjectURL(file));
+  setAiLoading(true);
 
   const fd = new FormData();
   fd.append("image", file);
 
-        try {
-              setAiLoading(true);
-
-              const res = await fetch(
-            "https://civic-issue-portal-2.onrender.com/api/vision/image",
-            {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-              body: fd,
-            }
-      );
-
+  try {
+    const res = await fetch(
+      "https://civic-issue-portal-2.onrender.com/api/vision/image",
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd,
+      }
+    );
 
     const data = await res.json();
 
+    if (!res.ok) throw new Error(data.error || "AI failed");
+
+    // 🧠 Fill form with AI result
     setForm((p) => ({
       ...p,
       title: data.title || p.title,
       description: data.description || p.description,
       category: data.category || p.category,
+      image: data.imageUrl,  // 👈 yahin URL save ho raha hai
     }));
 
     setAiSuggestion(data);
@@ -240,46 +236,46 @@ const handleImageChange = async (e) => {
     setAiLoading(false);
   }
 };
-
-
-
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    // 🔐 Validation layer (MAIN FIX)
-    if (!token) return handleSuccess("Please login first");
-    if (!form.title.trim()) return handleSuccess("Please enter issue title");
-    if (!form.description.trim())
-      return handleSuccess("Please enter issue description");
+  if (!token) return handleSuccess("Please login first");
+  if (!form.title.trim()) return handleSuccess("Please enter issue title");
+  if (!form.description.trim()) return handleSuccess("Please enter issue description");
+  if (!form.image) return handleSuccess("Please upload issue image");
 
-    setSubmitting(true);
+  setSubmitting(true);
 
-    try {
-      const fd = new FormData();
-      Object.entries(form).forEach(([k, v]) => fd.append(k, v));
+  try {
+    const fd = new FormData();
 
-      const res = await fetch(
-        "https://civic-issue-portal-2.onrender.com/api/issues",
-        {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-          body: fd,
-        }
-      );
+    Object.entries(form).forEach(([k, v]) => {
+      fd.append(k, v);  // image is now URL, not File
+    });
 
-      if (!res.ok) throw new Error("Submission failed");
+    const res = await fetch(
+      "https://civic-issue-portal-2.onrender.com/api/issues",
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd,
+      }
+    );
 
-      handleSuccess("Issue reported successfully!");
-      setTimeout(() => navigate("/user/dashboard"), 1000);
-    } catch {
-      handleSuccess("Something went wrong");
-    } finally {
-      setSubmitting(false);
-    }
-  };
+    if (!res.ok) throw new Error("Submission failed");
+
+    handleSuccess("Issue reported successfully!");
+    setTimeout(() => navigate("/user/dashboard"), 1000);
+  } catch (err) {
+    console.error(err);
+    handleSuccess("Something went wrong");
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-100 py-10">
