@@ -113,7 +113,7 @@ exports.analyzeImage = async (req, res) => {
             {
               type: "input_text",
               text: `
-Detect the main civic issue in this image and return ONLY strict JSON:
+Detect the main civic issue in this image and return ONLY JSON:
 
 {
   "title": "",
@@ -121,13 +121,7 @@ Detect the main civic issue in this image and return ONLY strict JSON:
   "category": "",
   "priority": "Low | Medium | High",
   "suggestedAction": ""
-}
-
-Rules:
-- Only describe visible objects.
-- Do NOT guess.
-- If unsure, choose closest category.
-`
+}`
             },
             {
               type: "input_image",
@@ -139,10 +133,9 @@ Rules:
     });
 
     const text = response.output_text;
-    const json = JSON.parse(text);
+    const json = JSON.parse(text.match(/\{[\s\S]*\}/)[0]);
 
     res.json(json);
-
   } catch (err) {
     console.error("AI IMAGE ERROR:", err);
     res.status(500).json({

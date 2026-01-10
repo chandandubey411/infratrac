@@ -17,3 +17,4 @@ const { auth } = require("../Middleware/auth");
 router.post("/image", auth, upload.single("image"), analyzeImage);
 
 module.exports = router;
+

@@ -65,3 +65,43 @@
 //   }
 // };
 
+const OpenAI = require("openai");
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
+
+exports.analyzeText = async (req, res) => {
+  try {
+    const { title, description } = req.body;
+
+    if (!title && !description) {
+      return res.json({ category: "Other", priority: "Low" });
+    }
+
+    const response = await openai.responses.create({
+      model: "gpt-4.1-mini",
+      input: `
+You are a civic issue classification system.
+
+Respond ONLY in JSON:
+
+{
+  "category": "Garbage | Water Leak | Road Safety | Pothole | Streetlight | Other",
+  "priority": "Low | Medium | High"
+}
+
+Title: ${title}
+Description: ${description}
+`
+    });
+
+    const text = response.output_text;
+    const json = JSON.parse(text.match(/\{[\s\S]*\}/)[0]);
+
+    res.json(json);
+  } catch (err) {
+    console.error("AI TEXT ERROR:", err);
+    res.json({ category: "Other", priority: "Medium" });
+  }
+};
