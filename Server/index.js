@@ -22,6 +22,7 @@ const issueRoutes = require("./App/Routes/Issue.js");
 const adminRoutes = require("./App/Routes/admin.js");
 const aiRoutes = require("./App/Routes/aiRoutes");
 const workerRoutes = require("./App/Routes/worker");
+const locationRoutes = require("./App/Routes/location");
 
 // 🌐 Middlewares
 app.use(express.urlencoded({ extended: true }));
@@ -47,6 +48,11 @@ app.use("/api/ai", aiRoutes);
 app.use("/api/vision", visionRoutes);
 app.use("/api/worker", workerRoutes);
 app.use("/api/chatbot", chatbotRoutes);
+// app.use("/api/location", locationRoutes);
+app.use("/api/location", locationRoutes);
+app.use("/api/location", require("./App/Routes/location"));
+
+
 
 app.get("/ping", (req, res) => res.send("pong"));
 

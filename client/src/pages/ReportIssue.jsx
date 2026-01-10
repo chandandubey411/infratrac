@@ -31,7 +31,7 @@ function MapCenterUpdater({ setForm }) {
       const lng = center.lng;
 
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+        `https://civic-issue-portal-2.onrender.com/api/location/reverse?format=json&lat=${lat}&lon=${lng}`
       );
       const data = await res.json();
 
@@ -68,7 +68,7 @@ function LocationPicker({ setForm }) {
       const { lat, lng } = e.latlng;
 
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+        `https://civic-issue-portal-2.onrender.com/api/location/reverse?format=json&lat=${lat}&lon=${lng}`
       );
       const data = await res.json();
 
@@ -115,6 +115,8 @@ export default function ReportIssue() {
   const [aiLoading, setAiLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [imageAnalyzed, setImageAnalyzed] = useState(false);
+
 
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
@@ -126,7 +128,7 @@ export default function ReportIssue() {
       const lng = pos.coords.longitude;
 
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+        `https://civic-issue-portal-2.onrender.com/api/location/reverse?format=json&lat=${lat}&lon=${lng}`
       );
       const data = await res.json();
 
@@ -152,11 +154,14 @@ export default function ReportIssue() {
   );
 
   /* 🧠 AI Text Analysis */
-  useEffect(() => {
-    if (form.title.length < 5 && form.description.length < 10) return;
-    const timer = setTimeout(() => analyzeText(), 700);
-    return () => clearTimeout(timer);
-  }, [form.title, form.description]);
+      useEffect(() => {
+        if (imageAnalyzed) return;
+        if (form.title.length < 5 && form.description.length < 10) return;
+
+        const timer = setTimeout(() => analyzeText(), 700);
+        return () => clearTimeout(timer);
+      }, [form.title, form.description, imageAnalyzed]);
+
 
   const analyzeText = async () => {
     if (aiLoading || !token) return;
@@ -184,37 +189,42 @@ export default function ReportIssue() {
     }
   };
 
-  const handleImageChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+const handleImageChange = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
 
-    setForm((p) => ({ ...p, image: file }));
-    setImagePreview(URL.createObjectURL(file));
+  setForm((p) => ({ ...p, image: file }));
+  setImagePreview(URL.createObjectURL(file));
 
-    const fd = new FormData();
-    fd.append("image", file);
+  const fd = new FormData();
+  fd.append("image", file);
 
-    try {
-      setAiLoading(true);
-      const res = await fetch(
-        "https://civic-issue-portal-2.onrender.com/api/ai/image",
-        {
-          method: "POST",
-          body: fd,
-        }
-      );
-      const data = await res.json();
-      setForm((p) => ({
-        ...p,
-        title: data.title || p.title,
-        description: data.description || p.description,
-        category: data.category || p.category,
-      }));
-      setAiSuggestion(data);
-    } finally {
-      setAiLoading(false);
-    }
-  };
+  try {
+    setAiLoading(true);
+    const res = await fetch(
+      "https://civic-issue-portal-2.onrender.com/api/ai/image",
+      {
+        method: "POST",
+        body: fd,
+      }
+    );
+    const data = await res.json();
+
+    setForm((p) => ({
+      ...p,
+      title: data.title || p.title,
+      description: data.description || p.description,
+      category: data.category || p.category,
+    }));
+
+    setAiSuggestion(data);
+    setImageAnalyzed(true);   // 
+
+  } finally {
+    setAiLoading(false);
+  }
+};
+
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });

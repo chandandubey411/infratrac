@@ -1,5 +1,4 @@
 const OpenAI = require("openai");
-const fs = require("fs");
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
@@ -7,11 +6,11 @@ const openai = new OpenAI({
 
 exports.analyzeImage = async (req, res) => {
   try {
-    if (!req.file) {
+    if (!req.file || !req.file.path) {
       return res.status(400).json({ error: "No image uploaded" });
     }
 
-    const base64Image = fs.readFileSync(req.file.path, "base64");
+    const imageUrl = req.file.path;
 
     const response = await openai.responses.create({
       model: "gpt-4.1-mini",
@@ -19,13 +18,24 @@ exports.analyzeImage = async (req, res) => {
         {
           role: "user",
           content: [
-            { 
-              type: "input_text", 
-              text: "Detect the main civic issue in this image and respond in JSON with fields: title, description, category, priority, suggestedAction." 
+            {
+              type: "input_text",
+              text: `
+Detect the main civic issue in this image.
+
+Return strict JSON:
+{
+ "title": "",
+ "description": "",
+ "category": "",
+ "priority": "Low | Medium | High",
+ "suggestedAction": ""
+}
+`
             },
             {
               type: "input_image",
-              image_url: `data:image/jpeg;base64,${base64Image}`
+              image_url: imageUrl
             }
           ]
         }
@@ -33,18 +43,12 @@ exports.analyzeImage = async (req, res) => {
     });
 
     const text = response.output_text;
-    console.log("🧠 AI RAW:", text);
+    const json = JSON.parse(text.match(/\{[\s\S]*\}/)[0]);
 
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error("No JSON found");
-
-    const result = JSON.parse(jsonMatch[0]);
-
-    return res.json(result);
+    return res.json(json);
 
   } catch (err) {
     console.error("🔥 IMAGE AI ERROR:", err);
-
     return res.status(500).json({
       title: "Manual Review Required",
       description: "AI could not analyze image.",
