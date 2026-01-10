@@ -98,7 +98,7 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 exports.analyzeImage = async (req, res) => {
   try {
-    if (!req.file) {
+    if (!req.file || !req.file.buffer) {
       return res.status(400).json({ error: "No image uploaded" });
     }
 
@@ -114,7 +114,6 @@ exports.analyzeImage = async (req, res) => {
               type: "input_text",
               text: `
 Detect the main civic issue from this image.
-
 Return ONLY strict JSON:
 {
  "title": "",
@@ -131,13 +130,20 @@ Return ONLY strict JSON:
       ]
     });
 
-    const result = JSON.parse(response.output_text);
+    const text = response.output_text;
+
+    let result;
+    try {
+      result = JSON.parse(text);
+    } catch {
+      console.error("Invalid AI JSON:", text);
+      return res.status(500).json({ error: "Invalid AI response" });
+    }
+
     res.json(result);
 
   } catch (err) {
     console.error("AI IMAGE ERROR:", err);
-    res.status(500).json({ error: "AI image processing failed" });
+    res.status(500).json({ error: "AI image processing failed", details: err.message });
   }
 };
-
-
