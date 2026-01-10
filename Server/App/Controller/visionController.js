@@ -93,13 +93,19 @@
 // };
 
 
-console.log("OPENAI KEY EXISTS:", process.env.OPENAI_API_KEY ? "YES" : "NO");
 const OpenAI = require("openai");
 const cloudinary = require("cloudinary").v2;
 const streamifier = require("streamifier");
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// 🧪 Debug: verify key on Render
+console.log("OPENAI KEY EXISTS:", process.env.OPENAI_API_KEY ? "YES" : "NO");
 
+// 🧠 OpenAI Client
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
+
+// ☁️ Cloudinary Config
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
   api_key: process.env.CLOUD_API_KEY,
@@ -112,7 +118,7 @@ exports.analyzeImage = async (req, res) => {
       return res.status(400).json({ error: "No image uploaded" });
     }
 
-    // ⬆️ Upload image to Cloudinary
+    // 📤 Upload to Cloudinary
     const uploadResult = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
         { folder: "civic-issues" },
@@ -126,16 +132,15 @@ exports.analyzeImage = async (req, res) => {
 
     const imageUrl = uploadResult.secure_url;
 
-    // 🧠 Send to OpenAI Vision
+    // 🧠 OpenAI Vision Call
     const response = await client.responses.create({
       model: "gpt-4.1-mini",
-      input: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "input_text",
-              text: `Detect the main civic issue and return ONLY JSON:
+      input: [{
+        role: "user",
+        content: [
+          {
+            type: "input_text",
+            text: `Detect the main civic issue and return ONLY strict JSON:
 {
  "title": "",
  "description": "",
@@ -143,25 +148,26 @@ exports.analyzeImage = async (req, res) => {
  "priority": "Low | Medium | High",
  "suggestedAction": ""
 }`
-            },
-            {
-              type: "input_image",
-              image_url: imageUrl
-            }
-          ]
-        }
-      ]
+          },
+          {
+            type: "input_image",
+            image_url: imageUrl
+          }
+        ]
+      }]
     });
 
-    const json = JSON.parse(response.output_text);
+    // 🔥 Correct parsing for new OpenAI SDK
+    const outputText = response.output[0].content[0].text;
+    const json = JSON.parse(outputText);
 
-    res.json(json);
+    return res.json(json);
 
   } catch (err) {
-  console.error("🔥 AI IMAGE ERROR FULL:", err?.response?.data || err);
-  res.status(500).json({
-    error: "AI image analysis failed",
-    details: err?.response?.data || err?.message || "Unknown error"
-  });
-}
+    console.error("🔥 AI IMAGE ERROR FULL:", err);
+    return res.status(500).json({
+      error: "AI image analysis failed",
+      details: err?.message || "Unknown error"
+    });
+  }
 };
