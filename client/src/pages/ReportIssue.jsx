@@ -241,7 +241,7 @@
     const handleChange = (e) =>
       setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleSubmit = async (e) => {
+ const handleSubmit = async (e) => {
   e.preventDefault();
 
   console.log("TOKEN BEING SENT:", token);
@@ -258,25 +258,28 @@
   setSubmitting(true);
 
   try {
-    const fd = new FormData();
-
-    Object.entries(form).forEach(([k, v]) => {
-      fd.append(k, v);
-    });
-
     const res = await fetch(
       "https://civic-issue-portal-2.onrender.com/api/issues",
       {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: fd,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(form),
       }
     );
 
-    if (!res.ok) throw new Error("Submission failed");
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error("SUBMIT ERROR:", data);
+      throw new Error(data.message || "Submission failed");
+    }
 
     handleSuccess("Issue reported successfully!");
     setTimeout(() => navigate("/user/dashboard"), 1000);
+
   } catch (err) {
     console.error(err);
     handleSuccess("Something went wrong");
@@ -284,6 +287,7 @@
     setSubmitting(false);
   }
 };
+
 
 
     return (
