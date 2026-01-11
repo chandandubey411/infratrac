@@ -93,7 +93,7 @@
 // };
 
 
-cconst OpenAI = require("openai");
+const OpenAI = require("openai");
 const cloudinary = require("cloudinary").v2;
 const streamifier = require("streamifier");
 
