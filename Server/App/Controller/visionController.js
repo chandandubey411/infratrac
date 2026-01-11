@@ -123,21 +123,46 @@ exports.analyzeImage = async (req, res) => {
       streamifier.createReadStream(req.file.buffer).pipe(stream);
     });
 
-    // 🤖 Create OpenAI client at runtime
+    // 🤖 OpenAI Client
     const client = getOpenAIClient();
 
+    // 🧠 Strong Prompt for Long & Professional Report
     const response = await client.responses.create({
       model: "gpt-4.1-mini",
       input: [{
         role: "user",
         content: [
-          { type: "input_text", text: "Detect the civic issue and return JSON only." },
-          { type: "input_image", image_url: uploadResult.secure_url }
+          {
+            type: "input_text",
+            text: `
+You are a municipal civic reporting assistant.
+
+From the given image generate a complete civic issue report in strict JSON only:
+
+{
+  "title": "Clear and meaningful 5–10 word issue title",
+  "description": "A detailed 200–300 word explanation of the issue seen in the image, including location impact, public inconvenience, safety risks, environmental concerns, and why urgent attention is required.",
+  "category": "Garbage | Water Leak | Road Safety | Pothole | Streetlight | Other",
+  "priority": "Low | Medium | High"
+}
+
+Rules:
+- Title must be human readable and professional.
+- Description must be 200–300 words.
+- Return only valid JSON.
+- No markdown.
+- No extra text.
+`
+          },
+          {
+            type: "input_image",
+            image_url: uploadResult.secure_url
+          }
         ]
       }]
     });
 
-    // 🧹 Extract only JSON safely
+    // 🧹 Extract JSON safely
     const raw = response.output[0].content[0].text;
     const match = raw.match(/\{[\s\S]*\}/);
 
@@ -147,7 +172,7 @@ exports.analyzeImage = async (req, res) => {
 
     const parsed = JSON.parse(match[0]);
 
-    // 👇 send image URL to frontend for final submit
+    // 👇 Send Cloudinary image URL to frontend
     parsed.imageUrl = uploadResult.secure_url;
 
     return res.json(parsed);
@@ -160,4 +185,3 @@ exports.analyzeImage = async (req, res) => {
     });
   }
 };
-
