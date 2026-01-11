@@ -93,19 +93,22 @@
 // };
 
 
-const OpenAI = require("openai");
+cconst OpenAI = require("openai");
 const cloudinary = require("cloudinary").v2;
 const streamifier = require("streamifier");
 
-console.log("OPENAI KEY EXISTS:", Boolean(process.env.OPENAI_API_KEY));
-
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
 cloudinary.config({
-  cloud_name: process.env.CLOUD_NAME,
-  api_key: process.env.CLOUD_API_KEY,
-  api_secret: process.env.CLOUD_API_SECRET
+  cloud_name: process.env.CLOUDINARY_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
 });
+
+function getOpenAIClient() {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error("OPENAI_API_KEY missing at runtime");
+  }
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+}
 
 exports.analyzeImage = async (req, res) => {
   try {
@@ -118,6 +121,8 @@ exports.analyzeImage = async (req, res) => {
       );
       streamifier.createReadStream(req.file.buffer).pipe(stream);
     });
+
+    const client = getOpenAIClient(); // 🔥 created at request time
 
     const response = await client.responses.create({
       model: "gpt-4.1-mini",
