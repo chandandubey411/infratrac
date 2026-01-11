@@ -2,9 +2,18 @@ const Issue = require("../Models/Issue.js");
 
 exports.createIssue = async (req, res) => {
   try {
-    console.log("BODY:", req.body);
+    console.log("REQ BODY =>", req.body);
 
-    const { title, description, category, latitude, longitude, image } = req.body;
+    const body = req.body || {};  // 🧯 prevents crash
+
+    const {
+      title,
+      description,
+      category,
+      latitude,
+      longitude,
+      image
+    } = body;
 
     if (!title || !description || !category || !latitude || !longitude || !image) {
       return res.status(400).json({ message: "All fields are required" });
@@ -14,29 +23,30 @@ exports.createIssue = async (req, res) => {
       title,
       description,
       category,
-      imageURL: image, // 👈 AI upload se aaya hua Cloudinary URL
+      imageURL: image,  // Cloudinary URL
       location: {
-        latitude: parseFloat(latitude),
-        longitude: parseFloat(longitude),
+        latitude: Number(latitude),
+        longitude: Number(longitude),
       },
       createdBy: req.user.userId,
     });
 
     await issue.save();
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "Issue reported successfully",
       issue,
     });
 
   } catch (err) {
     console.error("CREATE ISSUE ERROR:", err);
-    res.status(500).json({
+    return res.status(500).json({
       message: "Server error",
       error: err.message,
     });
   }
 };
+
 
 exports.getIssues = async (req, res) => {
   try {
