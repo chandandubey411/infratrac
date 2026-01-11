@@ -114,7 +114,6 @@ exports.analyzeImage = async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: "No image uploaded" });
 
-    // ☁️ Upload image to Cloudinary
     const uploadResult = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
         { folder: "civic-issues" },
@@ -123,10 +122,8 @@ exports.analyzeImage = async (req, res) => {
       streamifier.createReadStream(req.file.buffer).pipe(stream);
     });
 
-    // 🤖 OpenAI Client
     const client = getOpenAIClient();
 
-    // 🧠 Strong Prompt for Long & Professional Report
     const response = await client.responses.create({
       model: "gpt-4.1-mini",
       input: [{
@@ -135,53 +132,38 @@ exports.analyzeImage = async (req, res) => {
           {
             type: "input_text",
             text: `
-You are a municipal civic reporting assistant.
-
-From the given image generate a complete civic issue report in strict JSON only:
+Return ONLY valid JSON in this exact format:
 
 {
-  "title": "Clear and meaningful 5–10 word issue title",
-  "description": "A detailed 200–300 word explanation of the issue seen in the image, including location impact, public inconvenience, safety risks, environmental concerns, and why urgent attention is required.",
-  "category": "Garbage | Water Leak | Road Safety | Pothole | Streetlight | Other",
-  "priority": "Low | Medium | High"
+  "title": "",
+  "description": "",
+  "category": "Garbage | Water Leak | Road Safety | Pothole | Streetlight | Other"
 }
 
-Rules:
-- Title must be human readable and professional.
-- Description must be 200–300 words.
-- Return only valid JSON.
-- No markdown.
-- No extra text.
+Write a detailed 250-300 word description based only on what is visible in the image.
 `
           },
-          {
-            type: "input_image",
-            image_url: uploadResult.secure_url
-          }
+          { type: "input_image", image_url: uploadResult.secure_url }
         ]
       }]
     });
 
-    // 🧹 Extract JSON safely
-    const raw = response.output[0].content[0].text;
+    const raw = response.output_text || "";
     const match = raw.match(/\{[\s\S]*\}/);
 
     if (!match) {
+      console.log("RAW AI RESPONSE:", raw);
       throw new Error("AI did not return valid JSON");
     }
 
     const parsed = JSON.parse(match[0]);
-
-    // 👇 Send Cloudinary image URL to frontend
     parsed.imageUrl = uploadResult.secure_url;
 
     return res.json(parsed);
 
   } catch (err) {
     console.error("🔥 AI ERROR FULL:", err);
-    return res.status(500).json({
-      error: "AI failed to analyze image",
-      details: err.message
-    });
+    return res.status(500).json({ error: "AI failed to analyze image" });
   }
 };
+
