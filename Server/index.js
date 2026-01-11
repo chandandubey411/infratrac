@@ -1,3 +1,7 @@
+// 🔐 ENV MUST LOAD FIRST
+require("dotenv").config();
+
+// 🧯 Global Error Safety
 process.on("unhandledRejection", err => {
   console.error("🔥 UNHANDLED REJECTION:", err);
 });
@@ -8,10 +12,12 @@ process.on("uncaughtException", err => {
 
 const express = require("express");
 const app = express();
-require("dotenv").config();
 
 const connectDB = require("./App/Config/db");
 const cors = require("cors");
+
+// 🧪 Confirm OpenAI key exists
+console.log("OPENAI KEY EXISTS:", !!process.env.OPENAI_API_KEY);
 
 // 🧠 CORS Config
 app.use(cors({
@@ -24,15 +30,11 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
 }));
+
 app.use((req, res, next) => {
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
-  }
+  if (req.method === "OPTIONS") return res.sendStatus(200);
   next();
 });
-
-
-
 
 // 🌐 Body Parsers
 app.use(express.urlencoded({ extended: true }));
@@ -46,8 +48,6 @@ app.use("/api/worker", require("./App/Routes/worker"));
 app.use("/api/chatbot", require("./App/Routes/chatbotRoutes"));
 app.use("/api/location", require("./App/Routes/location"));
 app.use("/api/ai", require("./App/Routes/aiRoutes"));
-
-// 🧠 Vision Route (correct path)
 app.use("/api/vision", require("./App/Routes/visionRoutes"));
 
 // 🧪 Health Check
