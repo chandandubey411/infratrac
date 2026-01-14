@@ -102,8 +102,17 @@ app.use(cors({
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
 }));
 
-// 🛂 Handle Preflight Correctly
-app.options("*", cors());
+app.use((req, res, next) => {
+  if (req.method === "OPTIONS") {
+    res.header("Access-Control-Allow-Origin", req.headers.origin);
+    res.header("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.header("Access-Control-Allow-Credentials", "true");
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 
 // 🌐 Body Parsers
 app.use(express.urlencoded({ extended: true }));
@@ -128,10 +137,10 @@ const startServer = async () => {
     await connectDB();
     const port = process.env.PORT || 8080;
     app.listen(port, () => {
-      console.log(`🚀 Server running on port ${port}`);
+      console.log(`Server running on port ${port}`);
     });
   } catch (err) {
-    console.error("❌ Server failed to start:", err);
+    console.error("Server failed to start:", err);
     process.exit(1);
   }
 };
