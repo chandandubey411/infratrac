@@ -1,17 +1,20 @@
 import React, { useEffect, useState } from "react";
 import SnailLoader from "../components/Loader";
 
-
-
 const cleanPath = (path) => {
   if (!path) return null;
 
+  // ✅ If already absolute URL (Cloudinary etc.)
+  if (path.startsWith("http")) {
+    return path;
+  }
+
+  // ✅ For local/uploads images
   return `https://civic-issue-portal-2.onrender.com/${path
     .replace(/^.*?uploads/, "uploads")
     .replace(/\\/g, "/")
     .replace(/\/+/g, "/")}`;
 };
-
 
 function Issue() {
   const [issues, setIssues] = useState([]);
@@ -22,6 +25,7 @@ function Issue() {
     fetch("https://civic-issue-portal-2.onrender.com/api/issues")
       .then((res) => res.json())
       .then((data) => {
+        console.log(data);
         setIssues(data);
         setLoading(false);
       });
@@ -55,14 +59,17 @@ function Issue() {
             {/* Image section */}
             {issue.imageURL && (
               <div className="relative">
-               <img
-                  src={cleanPath(issue.imageURL)}
+                
+                <img
+                  src={issue.imageURL}
                   alt={issue.title}
                   className="h-48 w-full object-cover rounded-t-xl"
                   loading="lazy"
-                  onError={(e) => (e.target.style.display = "none")}
-              />
-
+                  onError={(e) => {
+                    console.error("Image failed:", e.target.src);
+                    e.target.style.display = "none";
+                  }}
+                />
 
                 <div className="absolute top-3 left-3 bg-white/80 text-xs font-semibold px-2 py-1 rounded-lg text-gray-800 backdrop-blur">
                   {issue.category}
