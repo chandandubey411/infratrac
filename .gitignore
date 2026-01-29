@@ -1,5 +1,0 @@
-.env
-Server/.env
-node_modules/
-Server/node_modules/
-uploads
